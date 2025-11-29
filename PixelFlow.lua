@@ -2,7 +2,7 @@
 -- PixelFlow, by Isotope. 
 -- =========================================================
 
-local version = "1.0.1"
+local version = "1.0.2"
 
 local fs = app.fs
 local separator = fs.pathSeparator
@@ -12,6 +12,14 @@ local storageFile = scriptPath .. separator .. "PixelFlow_Data.json"
 local projects = {}
 
 local showUI
+
+local function saveProjectData()
+    local file = io.open(storageFile, "w")
+    if file then
+        file:write(json.encode(projects))
+        file:close()
+    end
+end
 
 local function saveState(name, silent)
     if name == nil or name == "" then app.alert("Name cannot be empty.") return false end
@@ -91,14 +99,6 @@ local function loadProjectData()
         end
     else
         projects = {}
-    end
-end
-
-local function saveProjectData()
-    local file = io.open(storageFile, "w")
-    if file then
-        file:write(json.encode(projects))
-        file:close()
     end
 end
 
