@@ -1,9 +1,8 @@
 -- =========================================================
 -- PixelFlow, by Isotope. 
--- todo: add minimize button, add flow statistics ui that tracks time spent on workflow, changes, saves, sessions, todays stats, other 
 -- =========================================================
 
-local version = "1.0.0"
+local version = "1.0.1"
 
 local fs = app.fs
 local separator = fs.pathSeparator
@@ -135,9 +134,7 @@ local function showDetailsUI(projName)
         local fsize = getFileSizeStr(path)
         
         d:separator{ text=fname .. "  (" .. fsize .. ")" }
-
         d:label{ text="Path: " .. path }
-        
         d:button{
             text="Remove File",
             onclick=function()
@@ -148,7 +145,6 @@ local function showDetailsUI(projName)
                 if showUI then showUI() end
             end
         }
-
         d:button{
             text="Open Path",
             onclick=function()
@@ -182,6 +178,7 @@ end
 -- =========================================================
 
 local dlg 
+local isMinimized = false
 
 showUI = function()
     loadProjectData()
@@ -196,6 +193,25 @@ showUI = function()
     end
 
     dlg = Dialog("PixelFlow v" .. version .. " | realisotope")
+    
+    -- Helper function to toggle minimize/maximize
+    local function toggleMinimize()
+        isMinimized = not isMinimized
+        
+        -- Hide/show controls
+        local hideIds = {"btn_new_win", "btn_append", "btn_show_details", "btn_rename", 
+                        "btn_del", "new_name", "btn_save_new", "btn_close_all", 
+                        "sep_workflow"}
+        
+        for _, id in ipairs(hideIds) do
+            dlg:modify{id=id, visible=not isMinimized}
+        end
+        
+        -- Update button visibility
+        dlg:modify{id="minimize_btn", visible=not isMinimized}
+        dlg:modify{id="maximize_btn", visible=isMinimized}
+        dlg:modify{id="sep_bottom", visible=not isMinimized}
+    end
 
     -- MAIN ACTIONS
     dlg:combobox{
@@ -208,7 +224,7 @@ showUI = function()
             dlg:modify{ id="info_lbl", text=getFileCount(selectedProject).." Files" }
         end
     }
-
+    dlg:newrow()
     dlg:button{
         id="btn_swap",
         text="Swap to",
@@ -220,27 +236,6 @@ showUI = function()
         end
     }
     dlg:button{
-        id="btn_new_win",
-        text="Window (+)",
-        onclick=function() if selectedProject ~= "" then launchNewWindow(selectedProject) end end
-    }
-    dlg:button{
-        id="btn_append",
-        text="Append to",
-        onclick=function() if selectedProject ~= "" then openProjectFiles(selectedProject) end end
-    }
-
-    dlg:newrow()
-
-    dlg:button{
-        text=getFileCount(selectedProject).." Files - Show Details",
-        onclick=function() if selectedProject ~= "" then showDetailsUI(selectedProject) end end
-    }
-
-    -- WORKFLOW ACTIONS
-    dlg:separator{ text="Workflow Actions" }
-
-    dlg:button{
         id="btn_update",
         text="Update",
         onclick=function()
@@ -250,6 +245,34 @@ showUI = function()
             end
         end
     }
+    dlg:button{
+        id="maximize_btn",
+        text="Maximize",
+        visible=false,
+        onclick=function()
+            toggleMinimize()
+        end
+    }
+    dlg:newrow()
+    dlg:button{
+        id="btn_new_win",
+        text="Window (+)",
+        onclick=function() if selectedProject ~= "" then launchNewWindow(selectedProject) end end
+    }
+    dlg:button{
+        id="btn_append",
+        text="Append to",
+        onclick=function() if selectedProject ~= "" then openProjectFiles(selectedProject) end end
+    }
+    dlg:newrow()
+    dlg:button{
+        id="btn_show_details",
+        text=getFileCount(selectedProject).." Files - Show Details",
+        onclick=function() if selectedProject ~= "" then showDetailsUI(selectedProject) end end
+    }
+
+    -- WORKFLOW ACTIONS
+    dlg:separator{ id="sep_workflow", text="Workflow Actions" }
     dlg:button{
         id="btn_rename",
         text="Rename",
@@ -281,12 +304,9 @@ showUI = function()
             end
         end
     }
-
-    -- CREATE NEW WORKFLOW
-    dlg:separator{ text="Create New Workflow" }
-
     dlg:entry{ id="new_name", label="Name:" }
     dlg:button{
+        id="btn_save_new",
         text="Save New Workflow",
         onclick=function()
             local nn = dlg.data.new_name
@@ -295,8 +315,21 @@ showUI = function()
         end
     }
 
-    dlg:button{ text="Close All Tabs", onclick=function() app.command.CloseAllFiles() end }
-
+    dlg:separator{ id="sep_bottom" }
+    dlg:button{
+        id="btn_close_all",
+        text="Close All Tabs",
+        onclick=function() app.command.CloseAllFiles() end
+    }
+    dlg:button{
+        id="minimize_btn",
+        text="Minimize",
+        visible=true,
+        onclick=function()
+            toggleMinimize()
+        end
+    }
+    
     dlg:show{ wait=false }
 end
 
