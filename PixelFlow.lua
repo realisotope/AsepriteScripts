@@ -2,7 +2,7 @@
 -- PixelFlow, by Isotope. 
 -- =========================================================
 
-local version = "1.0.2"
+local version = "1.0.3"
 
 local fs = app.fs
 local separator = fs.pathSeparator
@@ -43,6 +43,17 @@ local function openProjectFiles(name)
     if missing > 0 then app.alert("Loaded with " .. missing .. " missing files.") end
 end
 
+local function getAsepriteExe()
+    local path = fs.appPath
+    if fs.isFile(path .. separator .. "Aseprite.exe") then
+        return '"' .. path .. separator .. "Aseprite.exe" .. '"'
+    elseif fs.isFile(path .. separator .. "aseprite") then
+        return '"' .. path .. separator .. "aseprite" .. '"'
+    else
+        return "aseprite"
+    end
+end
+
 local function launchNewWindow(name)
     local paths = projects[name]
     if not paths then return end
@@ -73,17 +84,6 @@ end
 
 local function getFileName(path)
     return path:match("[^" .. separator .. "]+$")
-end
-
-local function getAsepriteExe()
-    local path = fs.appPath
-    if fs.isFile(path .. separator .. "Aseprite.exe") then
-        return '"' .. path .. separator .. "Aseprite.exe" .. '"'
-    elseif fs.isFile(path .. separator .. "aseprite") then
-        return '"' .. path .. separator .. "aseprite" .. '"'
-    else
-        return "aseprite"
-    end
 end
 
 local function loadProjectData()
